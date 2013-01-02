@@ -1,13 +1,40 @@
 require(synapseClient)
 require(predictiveModeling)
 
-executionCodeId <- "syn1571659"
+###### arguments for makeCellLineModelingData #######################
+exprDataId <- "syn1571209"
+copyDataId <- "syn1571218"
+featureDataIdList <- list(expr = exprDataId, copy = copyDataId)
+responseDataId = "syn1571205"
 
-args <- list(featureDataId = "syn1571209",
-                     responseDataId = "syn1571205",
-                     className = "GlmnetModel",
-                     drugId = 1)
+responseDataEntity <- loadEntity(responseDataId)
+allCompoundNames <- colnames(responseDataEntity$objects[[1]])
 
-resultParentId <- "syn1571652"
-
-synapseExecute(executionCodeId, functionArgs, resultParentId)
+for (i in 3:24){
+  i
+  compound = allCompoundNames[i]
+  
+  modelingDataResultParentId <- "syn1572106"
+  
+  makeModelingData_functionArgs <- list(featureDataIdList = featureDataIdList,
+                                        responseDataId = responseDataId,
+                                        compound = compound)
+  
+  modelingDataEntity <- synapseExecute("makeCellLineModelingData",
+                                       makeModelingData_functionArgs,
+                                       resultParentId = modelingDataResultParentId)
+  
+  modelingData <- modelingDataEntity$objects$functionResult
+  className <- "GlmnetModel"
+  
+  cvResultsEntity <- synapseExecute("crossValidatePredictiveModel_synapse", list(modelDataSynapseId=modelingDataEntity$properties$id,
+                                                                 model=className),
+                              resultParentId = "syn1571652")
+  cvResultsEntity$annotations$exprDataId <- exprDataId
+  cvResultsEntity$annotations$copyDataId <- copyDataId
+  cvResultsEntity$annotations$compound <- compound
+  cvResultsEntity$annotations$model <- className
+  cvResultsEntity$annotations$r2 <- cvResultsEntity$objects$functionResult$getR2()
+  
+  cvResultsEntity <- storeEntity(cvResultsEntity)
+}
