@@ -12,7 +12,7 @@ createUsedEntitiesList <- function(args, usedEntitiesList = list()){
 
 
 synapseExecute <- function(functionName, args, resultParentId, resultEntityProperties = NULL, 
-                           resultEntityName=makeProvenanceEntityName(functionName, args)){
+                           resultEntityName=makeProvenanceEntityName(functionName, args), functionResult=NULL){
 #   executionCode <- loadEntity(executionCodeId)
 #   functionResult <- do.call(executionCode$objects[[1]], args)
   
