@@ -1,3 +1,6 @@
+require(rGithubClient)
+require(RCurl)
+
 createUsedEntitiesList <- function(args, usedEntitiesList = list()){  
   for (argName in names(args)){
     argVal <- args[[argName]]
@@ -10,30 +13,72 @@ createUsedEntitiesList <- function(args, usedEntitiesList = list()){
   return(usedEntitiesList)
 }
 
+encap <- function(str, encapper = "'"){
+  retVal <- paste(encapper, str, encapper, sep="")
+  return(retVal)
+}
 
-synapseExecute <- function(functionName, args, resultParentId, resultEntityProperties = NULL, 
-                           resultEntityName=makeProvenanceEntityName(functionName, args), functionResult=NULL){
-#   executionCode <- loadEntity(executionCodeId)
-#   functionResult <- do.call(executionCode$objects[[1]], args)
+getOrCreateEntity <- function(name, parentId, entityType){
+  entityId <- synapseQuery(paste("select id from entity where entity.parentId ==", encap(parentId), "AND entity.name ==", encap(name)))
   
-#   executionCode <- source_url(executionCodeId)
-#   functionResult <- do.call(executionCode$value, args)
+  if (is.null(entityId)){
+    entity <- do.call(entityType, list(name=name, parentId=parentId))
+    entity <- storeEntity(entity)
+  }else{
+    entity <- getEntity(entityId$entity.id)
+  }
   
-  print(paste("Executing function", functionName))
-  functionResult <- do.call(functionName, args)
-  print(paste("Executing of function", functionName, "complete"))
+  return(entity)
+}
+
+createGithubCodeEntity <- function(repoName, sourceFile){
+  githubRepo <- getRepo(repository=repoName)
   
+  githubCodeProjectId <- "syn1583141"
   
-  ###### hack to get function name ##########
-#   tester <- strsplit(executionCodeId, "/")
-#   executionCodeName <- tester[[1]][[length(tester[[1]])]]
+  synapseRepoName <- gsub("/", "+", repoName)
+  synapseSourceFile <- gsub("/", "+", sourceFile)
+  
+  repoEntity <- getOrCreateEntity(name=synapseRepoName, parentId=githubCodeProjectId, entityType="Folder")
+  commitEntity <- getOrCreateEntity(name=as.character(githubRepo@commit), parentId=repoEntity$properties$id, entityType="Folder")
+  sourceFileEntity <- getOrCreateEntity(name=synapseSourceFile, parentId=commitEntity$properties$id, entityType="Code")
+  
+  githubURL <- paste("https://raw.github.com", githubRepo@user, githubRepo@repo, githubRepo@commit, sourceFile, sep="/")
+  
+  sourceFileEntity$annotations$githubURL <- githubURL
+  sourceFileEntity$properties$description <- getURLContent(githubURL)
+  sourceFileEntity <- storeEntity(sourceFileEntity)
+  
+  return(sourceFileEntity)
+}
+
+
+synapseExecute <- function(activityFunctionRef, args, resultParentId, resultEntityProperties = NULL, 
+                           resultEntityName=makeProvenanceEntityName(activityFunction, args), functionResult=NULL){
   
   usedEntitiesList <- createUsedEntitiesList(args)
   
-  activity <- Activity(list(name = functionName, used = usedEntitiesList))
-#   activity$annotations$args <- args
-  activity <- createEntity(activity)
+  ##### would be better to use Brian's GitHub client to represent a file and not just a repo so we can check for class of type
+  ##### GithubFile rather than checking for a list #############
+  if (is.list(activityFunctionRef)){
+    executionCodeEntity <- createGithubCodeEntity(repoName = activityFunctionRef$repoName, sourceFile = activityFunctionRef$sourceFile)
+    executionCode <- source_url(executionCodeEntity$annotations$githubURL)
+    functionResult <- do.call(executionCode$value, args)
+    
+    usedEntitiesList[[length(usedEntitiesList)+1]] <- list(entity=executionCodeEntity, wasExecuted=TRUE)
+    
+    activity <- Activity(list(name = activityFunctionRef$sourceFile, used = usedEntitiesList))
+    activity <- createEntity(activity)
+    
+  }else if (is.character(activityFunctionRef) || is.function(activityFunctionRef)){
+    print(paste("Executing function", activityFunction))
+    functionResult <- do.call(activityFunctionRef, args)
+    print(paste("Executing of function", activityFunction, "complete"))
+  }
+#   executionCode <- loadEntity(executionCodeId)
+#   functionResult <- do.call(executionCode$objects[[1]], args)
   
+
   resultEntity <- Data(name=resultEntityName, parentId = resultParentId)
   generatedBy(resultEntity) <- activity
   

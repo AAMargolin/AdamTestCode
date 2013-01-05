@@ -1,5 +1,12 @@
 require(synapseClient)
 require(predictiveModeling)
+require(rGithubClient)
+
+repository <- getRepo(repository="/AAMargolin/AdamTestCode")
+sourceRepoFile(repository, "ccleAnalysis/makeCellLineModelingData.R")
+sourceRepoFile(repository, "ccleAnalysis/crossValidatePredictiveModel_synapse.R")
+sourceRepoFile(repository, "synapseExecute/synapseExecute.R")
+sourceRepoFile(repository, "synapseExecute/makeProvenanceEntityName.R")
 
 ###### arguments for makeCellLineModelingData #######################
 exprDataId <- "syn1571209"
@@ -10,11 +17,11 @@ responseDataId = "syn1571205"
 responseDataEntity <- loadEntity(responseDataId)
 allCompoundNames <- colnames(responseDataEntity$objects[[1]])
 
-for (i in 3:24){
-  i
+# for (i in 3:24){
+  i=1
   compound = allCompoundNames[i]
   
-  modelingDataResultParentId <- "syn1572106"
+  modelingDataResultParentId <- "syn1583154"
   
   makeModelingData_functionArgs <- list(featureDataIdList = featureDataIdList,
                                         responseDataId = responseDataId,
@@ -37,4 +44,4 @@ for (i in 3:24){
   cvResultsEntity$annotations$r2 <- cvResultsEntity$objects$functionResult$getR2()
   
   cvResultsEntity <- storeEntity(cvResultsEntity)
-}
+# }
