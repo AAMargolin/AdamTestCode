@@ -7,6 +7,8 @@ createUsedEntitiesList <- function(args, usedEntitiesList = list()){
     argVal <- args[[argName]]
     if(is.character(argVal) && substr(argVal, 1, 3) == "syn"){
       usedEntitiesList[[length(usedEntitiesList)+1]] <- list(entity=argVal, wasExecuted=FALSE)
+    }else if (class(argVal) %in% c("Data", "Code", "Folder") ){
+      usedEntitiesList[[length(usedEntitiesList)+1]] <- list(entity=argVal$properties$id, wasExecuted=FALSE)
     }else if (is.list(argVal)){
       usedEntitiesList <- createUsedEntitiesList(argVal, usedEntitiesList)
     }
@@ -55,8 +57,8 @@ createGithubCodeEntity <- function(repoName, sourceFile){
 
 
 synapseExecute <- function(activityFunctionRef, args, resultParentId, resultEntityProperties = NULL, 
-                           resultEntityName=makeProvenanceEntityName(activityFunctionRef, args), functionResult=NULL){
-  
+                           resultEntityName=NULL, functionResult=NULL){
+#   resultEntityName <- makeProvenanceEntityName(activityFunctionRef, args)
   usedEntitiesList <- createUsedEntitiesList(args)
   
   print(paste("Executing function"))
