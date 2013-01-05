@@ -21,7 +21,7 @@ allCompoundNames <- colnames(responseDataEntity$objects[[1]])
   i=1
   compound = allCompoundNames[i]
   
-  modelingDataResultParentId <- "syn1572106"
+  modelingDataResultParentId <- "syn1583188"
   modelsParentId <- "syn1583154"
   
   makeModelingData_functionArgs <- list(featureDataIdList = featureDataIdList,
@@ -37,7 +37,7 @@ allCompoundNames <- colnames(responseDataEntity$objects[[1]])
   
   modelCodeEntity <- createGithubCodeEntity(repoName="Sage-Bionetworks/predictiveModeling", sourceFile="R/GlmnetModel.R")
   cvResultsEntity <- synapseExecute(list(repoName="/AAMargolin/AdamTestCode", sourceFile="ccleAnalysis/crossValidatePredictiveModel_synapse.R"),
-                                    args=list(modelDataSynapseId="syn1583176",
+                                    args=list(modelDataSynapseId=modelingDataEntity$properties$id,
                                               model=modelCodeEntity),
                                     resultParentId = modelsParentId)
   cvResultsEntity$annotations$exprDataId <- exprDataId
