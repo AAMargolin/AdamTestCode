@@ -1,15 +1,17 @@
-makeProvenanceEntityName <- function(functionName, functionArgs, isFirstCall=TRUE){
+makeProvenanceEntityName <- function(activityFunctionRef, functionArgs, isFirstCall=TRUE){
   entityName = ""
   for (curArgName in names(functionArgs)){
     if (is.list(functionArgs[[curArgName]])){
-      entityName <- paste(entityName, makeProvenanceEntityName(functionName, functionArgs[[curArgName]], isFirstCall=FALSE))
+      entityName <- paste(entityName, makeProvenanceEntityName(activityFunctionRef, functionArgs[[curArgName]], isFirstCall=FALSE))
     }else{
       entityName <- paste(entityName, curArgName, functionArgs[[curArgName]])
     }
   }
   
   if(isFirstCall){
-    entityName <- paste(functionName, entityName)
+    if(is.list(activityFunctionRef)){
+      entityName <- paste( gsub("/","+", activityFunctionRef$sourceFile), entityName)
+    }
   }
   
   return(entityName)
