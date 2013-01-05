@@ -1,4 +1,5 @@
 require(rGithubClient)
+require(devtools)
 require(RCurl)
 
 createUsedEntitiesList <- function(args, usedEntitiesList = list()){  
@@ -54,9 +55,11 @@ createGithubCodeEntity <- function(repoName, sourceFile){
 
 
 synapseExecute <- function(activityFunctionRef, args, resultParentId, resultEntityProperties = NULL, 
-                           resultEntityName=makeProvenanceEntityName(activityFunction, args), functionResult=NULL){
+                           resultEntityName=makeProvenanceEntityName(activityFunctionRef, args), functionResult=NULL){
   
   usedEntitiesList <- createUsedEntitiesList(args)
+  
+  print(paste("Executing function"))
   
   ##### would be better to use Brian's GitHub client to represent a file and not just a repo so we can check for class of type
   ##### GithubFile rather than checking for a list #############
@@ -65,19 +68,19 @@ synapseExecute <- function(activityFunctionRef, args, resultParentId, resultEnti
     executionCode <- source_url(executionCodeEntity$annotations$githubURL)
     functionResult <- do.call(executionCode$value, args)
     
-    usedEntitiesList[[length(usedEntitiesList)+1]] <- list(entity=executionCodeEntity, wasExecuted=TRUE)
+    usedEntitiesList[[length(usedEntitiesList)+1]] <- list(entity=executionCodeEntity$properties$id, wasExecuted=TRUE)
     
     activity <- Activity(list(name = activityFunctionRef$sourceFile, used = usedEntitiesList))
     activity <- createEntity(activity)
     
   }else if (is.character(activityFunctionRef) || is.function(activityFunctionRef)){
-    print(paste("Executing function", activityFunction))
+    
     functionResult <- do.call(activityFunctionRef, args)
-    print(paste("Executing of function", activityFunction, "complete"))
   }
 #   executionCode <- loadEntity(executionCodeId)
 #   functionResult <- do.call(executionCode$objects[[1]], args)
   
+  print(paste("Executing of function complete"))
 
   resultEntity <- Data(name=resultEntityName, parentId = resultParentId)
   generatedBy(resultEntity) <- activity
