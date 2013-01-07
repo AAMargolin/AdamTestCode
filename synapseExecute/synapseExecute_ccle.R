@@ -17,8 +17,8 @@ responseDataId = "syn1571205"
 responseDataEntity <- loadEntity(responseDataId)
 allCompoundNames <- colnames(responseDataEntity$objects[[1]])
 
-# for (i in 3:24){
-  i=1
+for (i in 7:24){
+  i=7
   print(paste("processing", i))
   compound = allCompoundNames[i]
   
@@ -48,4 +48,4 @@ allCompoundNames <- colnames(responseDataEntity$objects[[1]])
   cvResultsEntity$annotations$r2 <- cvResultsEntity$objects$functionResult$getR2()
   
   cvResultsEntity <- storeEntity(cvResultsEntity)
-# }
+}
