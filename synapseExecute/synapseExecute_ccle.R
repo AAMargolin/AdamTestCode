@@ -19,6 +19,7 @@ allCompoundNames <- colnames(responseDataEntity$objects[[1]])
 
 # for (i in 3:24){
   i=1
+  print(paste("processing", i))
   compound = allCompoundNames[i]
   
   modelingDataResultParentId <- "syn1583188"

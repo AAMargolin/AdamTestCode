@@ -1,4 +1,5 @@
 require(rGithubClient)
+require(synapseClient)
 require(devtools)
 require(RCurl)
 
