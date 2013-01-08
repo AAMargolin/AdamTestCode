@@ -3,6 +3,7 @@ require(synapseClient)
 require(devtools)
 require(RCurl)
 
+#### there is probably a better way of checking if a variable is a Synapse object #####
 createUsedEntitiesList <- function(args, usedEntitiesList = list()){  
   for (argName in names(args)){
     argVal <- args[[argName]]
@@ -43,12 +44,14 @@ createGithubCodeEntity <- function(repoName, sourceFile){
   synapseRepoName <- gsub("/", "+", repoName)
   synapseSourceFile <- gsub("/", "+", sourceFile)
   
+  ##### is there a standard R client function like getOrCreateEntity?
   repoEntity <- getOrCreateEntity(name=synapseRepoName, parentId=githubCodeProjectId, entityType="Folder")
   commitEntity <- getOrCreateEntity(name=as.character(githubRepo@commit), parentId=repoEntity$properties$id, entityType="Folder")
   sourceFileEntity <- getOrCreateEntity(name=synapseSourceFile, parentId=commitEntity$properties$id, entityType="Code")
   
   githubURL <- paste("https://raw.github.com", githubRepo@user, githubRepo@repo, githubRepo@commit, sourceFile, sep="/")
   
+  ##### need a more robust way of handling Code entities pointing to GitHub
   sourceFileEntity$annotations$githubURL <- githubURL
   sourceFileEntity$properties$description <- getURLContent(githubURL)
   sourceFileEntity <- storeEntity(sourceFileEntity)
@@ -63,6 +66,9 @@ synapseExecute <- function(activityFunctionRef, args, resultParentId, resultEnti
   usedEntitiesList <- createUsedEntitiesList(args)
   
   print(paste("Executing function"))
+  
+  #### should probably support activityFunctionRef being a GitHubRepo, a function name (both handled below)
+  #### of a file containing Code, which it would copy to a Synapse Code entity.
   
   ##### would be better to use Brian's GitHub client to represent a file and not just a repo so we can check for class of type
   ##### GithubFile rather than checking for a list #############

@@ -17,8 +17,8 @@ responseDataId = "syn1571205"
 responseDataEntity <- loadEntity(responseDataId)
 allCompoundNames <- colnames(responseDataEntity$objects[[1]])
 
-for (i in 7:24){
-  i=7
+for (i in 1:24){
+#   i=7
   print(paste("processing", i))
   compound = allCompoundNames[i]
   
@@ -37,7 +37,7 @@ for (i in 7:24){
   className <- "GlmnetModel"
   
   modelCodeEntity <- createGithubCodeEntity(repoName="Sage-Bionetworks/predictiveModeling", sourceFile="R/GlmnetModel.R")
-  cvResultsEntity <- synapseExecute(list(repoName="/AAMargolin/AdamTestCode", sourceFile="ccleAnalysis/crossValidatePredictiveModel_synapse.R"),
+  cvResultsEntity <- synapseExecute(list(repoName="/AAMargolin/AdamTestCode", sourceFile="ccleAnalysis/syn_crossValidatePredictiveModel.R"),
                                     args=list(modelDataSynapseId=modelingDataEntity$properties$id,
                                               model=modelCodeEntity),
                                     resultParentId = modelsParentId)

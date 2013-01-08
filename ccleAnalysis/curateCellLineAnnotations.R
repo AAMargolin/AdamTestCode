@@ -45,6 +45,8 @@ curateCellLineAnnotations <- function(inputAnnotEntityId){
   sangerAnnot_curated <- createTumorTypeSummary(sangerAnnot_curated, "adrenal_gland", "Primary.Histology")
   sangerAnnot_curated <- createTumorTypeSummary(sangerAnnot_curated, "eye", "Primary.Histology")
   
+  sangerAnnot_curated <- gsub("\\.", "", toupper(make.names(sangerAnnot_curated$Sample.name)))
+  
   return(sangerAnnot_curated)
 }
 
